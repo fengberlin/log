@@ -3,6 +3,7 @@ package log
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
 	"sync"
 )
 
@@ -36,12 +37,38 @@ func defaultEncoderConfig() zapcore.EncoderConfig {
 		EncodeTime:       defaultTimeEncoder(),
 		EncodeDuration:   zapcore.SecondsDurationEncoder,
 		EncodeCaller:     zapcore.ShortCallerEncoder,
-		ConsoleSeparator: "",
+		ConsoleSeparator: "", // default is a tab
 	}
 	return cfg
 }
 
+func defaultLogOptions() *options {
+	return &options{
+		level:            zap.AtomicLevel{},
+		encoderCfg:       zapcore.EncoderConfig{},
+		serviceName:      "",
+		fileName:         "",
+		fileRotateMaxAge: 0,
+		fileRotationTime: 0,
+		addCaller:        false,
+		callSkip:         0,
+		addStacktrace:    nil,
+		wrapCoreFunc:     nil,
+	}
+}
+
 func NewLogger(opts ...Option) (*zap.Logger, error) {
-	l := zap.New(nil)
+	defaultOpts := defaultLogOptions()
+	defaultOpts.encoderCfg = defaultEncoderConfig()
+	for i := 0; i < len(opts); i++ {
+		opts[i].apply(defaultOpts)
+	}
+	var encoder zapcore.Encoder
+	var cores []zapcore.Core
+	if defaultOpts.serviceName == "" && defaultOpts.fileName == "" {
+		encoder = zapcore.NewConsoleEncoder(defaultOpts.encoderCfg)
+		cores = []zapcore.Core{zapcore.NewCore(encoder, os.Stderr, defaultOpts.level)}
+	}
+	l := zap.New(zapcore.NewTee(cores...))
 	return l, nil
 }

@@ -7,18 +7,16 @@ import (
 )
 
 type options struct {
-	level zap.AtomicLevel
-	encoderCfg zapcore.EncoderConfig
-	console bool
-	serviceName string
-	fileName string
+	level            zap.AtomicLevel
+	encoderCfg       zapcore.EncoderConfig
+	serviceName      string
+	fileName         string
 	fileRotateMaxAge time.Duration
 	fileRotationTime time.Duration
-	development bool
-	addCaller bool
-	callSkip int
-	addStacktrace zapcore.LevelEnabler
-	wrapCoreFunc func(zapcore.Core) zapcore.Core
+	addCaller        bool
+	callSkip         int
+	addStacktrace    zapcore.LevelEnabler
+	wrapCoreFunc     func(zapcore.Core) zapcore.Core
 }
 
 type Option interface {
